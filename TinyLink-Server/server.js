@@ -1,8 +1,8 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const path = require("path");
-const mongoose = require("mongoose");       // <-- FIXED
-const cors = require("cors");               // <-- FIXED
+const mongoose = require("mongoose");    
+const cors = require("cors");               
 
 const connectDB = require("./db/db");
 const Link = require("./db/Link");
@@ -15,7 +15,7 @@ dotenv.config();
 connectDB();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 5000;
 const NODE_ENV = process.env.NODE_ENV || "development";
 
 // Middleware
