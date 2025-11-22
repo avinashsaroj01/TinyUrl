@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -9,6 +10,8 @@ import {
   selectLinksError,
   setNotification,
 } from "../features/links/linksSlice";
+
+const BACKEND_ORIGIN = "http://localhost:5000";
 
 const LinkTable = () => {
   const dispatch = useDispatch();
@@ -31,7 +34,8 @@ const LinkTable = () => {
   }, [status, dispatch]);
 
   const handleCopy = (code) => {
-    const fullUrl = `${window.location.origin}/${code}`;
+    // Usage 2: Use the explicit backend origin for the copied link
+    const fullUrl = `${BACKEND_ORIGIN}/${code}`;
     // Use document.execCommand('copy') for better compatibility in sandboxed environments
     const tempInput = document.createElement("input");
     document.body.appendChild(tempInput);
@@ -55,6 +59,7 @@ const LinkTable = () => {
   };
 
   const handleDelete = (code) => {
+    // NOTE: In a real app, use a custom modal instead of window.confirm
     if (
       window.confirm(
         `Are you sure you want to delete the link with code: ${code}?`
@@ -193,7 +198,8 @@ const LinkTable = () => {
                   {/* Short Code */}
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">
                     <a
-                      href={`/${link.code}`}
+                      // Usage 1: Explicitly directs the browser to the backend server (Port 5000)
+                      href={`${BACKEND_ORIGIN}/${link.code}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="hover:underline"
