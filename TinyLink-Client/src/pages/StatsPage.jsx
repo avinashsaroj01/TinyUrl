@@ -9,6 +9,7 @@ import {
   clearCurrentLinkStats,
 } from "../features/links/linksSlice";
 import StatCard from "../components/StatCard";
+const BACKEND_ORIGIN = process.env.REACT_APP_BACKEND_ORIGIN || "";
 
 const StatsPage = () => {
   const { code } = useParams();
@@ -96,7 +97,10 @@ const StatsPage = () => {
     }
 
     if (stats) {
-      const shortUrl = `${window.location.origin}/${stats.code}`;
+      // FIX: Use the environment-aware origin for the short URL
+      const baseOrigin = BACKEND_ORIGIN || window.location.origin;
+      const shortUrl = `${baseOrigin}/${stats.code}`;
+
       return (
         <div className="space-y-8">
           <div className="bg-white p-6 rounded-xl shadow-xl border border-gray-100">
@@ -107,6 +111,7 @@ const StatsPage = () => {
             <p className="text-sm text-gray-500 mb-4">
               Short URL:
               <a
+                // FIX: Ensure the short URL points to the backend server
                 href={shortUrl}
                 target="_blank"
                 rel="noopener noreferrer"

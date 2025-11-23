@@ -4,6 +4,7 @@ import {
   createLink,
   deleteLinkByCode,
   fetchLinkStats,
+  fetchHealthStatus,
 } from "./linksApi";
 
 export const fetchLinks = createAsyncThunk("links/fetchLinks", async () => {
@@ -44,6 +45,19 @@ export const getLinkStats = createAsyncThunk(
   }
 );
 
+// NEW THUNK for Health Check
+export const fetchHealth = createAsyncThunk(
+  "links/fetchHealth",
+  async (_, { rejectWithValue }) => {
+    try {
+      return await fetchHealthStatus();
+    } catch (error) {
+      // The error is a standard Error object, we extract the message
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 const initialState = {
   links: [],
   status: "idle",
@@ -52,6 +66,10 @@ const initialState = {
   currentLinkStats: null,
   statsStatus: "idle",
   statsError: null,
+  // NEW STATE for Health Check
+  healthData: null,
+  healthStatus: "idle",
+  healthError: null,
 };
 
 export const linksSlice = createSlice({
@@ -68,6 +86,11 @@ export const linksSlice = createSlice({
       state.currentLinkStats = null;
       state.statsStatus = "idle";
       state.statsError = null;
+    },
+    clearHealthData: (state) => {
+      state.healthData = null;
+      state.healthStatus = "idle";
+      state.healthError = null;
     },
   },
   extraReducers: (builder) => {
@@ -86,7 +109,8 @@ export const linksSlice = createSlice({
         state.error = action.error.message || "Could not load links.";
       })
 
-      // CREATE NEW LINK
+      // ... CREATE NEW LINK, DELETE LINK, GET LINK STATS remain the same ...
+
       .addCase(createNewLink.fulfilled, (state, action) => {
         state.links.unshift(action.payload);
         state.error = null;
@@ -103,7 +127,6 @@ export const linksSlice = createSlice({
         };
       })
 
-      // DELETE LINK
       .addCase(deleteLink.fulfilled, (state, action) => {
         state.links = state.links.filter(
           (link) => link.code !== action.payload
@@ -122,7 +145,6 @@ export const linksSlice = createSlice({
         };
       })
 
-      // GET LINK STATS (For StatsPage)
       .addCase(getLinkStats.pending, (state) => {
         state.statsStatus = "loading";
         state.statsError = null;
@@ -134,12 +156,33 @@ export const linksSlice = createSlice({
       .addCase(getLinkStats.rejected, (state, action) => {
         state.statsStatus = "failed";
         state.statsError = action.payload || "Failed to load link statistics.";
+      })
+
+      // NEW Reducers for Health Check
+      .addCase(fetchHealth.pending, (state) => {
+        state.healthStatus = "loading";
+        state.healthError = null;
+      })
+      .addCase(fetchHealth.fulfilled, (state, action) => {
+        state.healthStatus = "succeeded";
+        state.healthData = action.payload;
+        state.healthError = null;
+      })
+      .addCase(fetchHealth.rejected, (state, action) => {
+        state.healthStatus = "failed";
+        state.healthError =
+          action.payload ||
+          "Health check failed due to network or server error.";
       });
   },
 });
 
-export const { setNotification, clearNotification, clearCurrentLinkStats } =
-  linksSlice.actions;
+export const {
+  setNotification,
+  clearNotification,
+  clearCurrentLinkStats,
+  clearHealthData,
+} = linksSlice.actions;
 
 export const selectAllLinks = (state) => state.links.links;
 export const selectLinksStatus = (state) => state.links.status;
@@ -148,5 +191,9 @@ export const selectNotification = (state) => state.links.notification;
 export const selectCurrentLinkStats = (state) => state.links.currentLinkStats;
 export const selectStatsStatus = (state) => state.links.statsStatus;
 export const selectStatsError = (state) => state.links.statsError;
+// NEW SELECTORS for Health Check
+export const selectHealthData = (state) => state.links.healthData;
+export const selectHealthStatus = (state) => state.links.healthStatus;
+export const selectHealthError = (state) => state.links.healthError;
 
 export default linksSlice.reducer;
